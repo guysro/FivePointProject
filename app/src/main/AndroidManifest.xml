@@ -11,7 +11,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.FivePointsProject"
-        tools:targetApi="31">
+        tools:targetApi="35">
+        <activity
+            android:name=".GameActivity"
+            android:exported="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true">
