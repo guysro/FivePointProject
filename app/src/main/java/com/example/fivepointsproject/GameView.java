@@ -1,12 +1,15 @@
 package com.example.fivepointsproject;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class GameView extends SurfaceView implements Runnable {
 
@@ -16,6 +19,8 @@ public class GameView extends SurfaceView implements Runnable {
     private final Shooter shooter;
     private final Ball ball;
     private final Background background;
+    private final List<Bullet> bullets;
+    private long lastShotTime;
     private final int screenX;
     private final int screenY;
     private int setPoint;
@@ -35,6 +40,7 @@ public class GameView extends SurfaceView implements Runnable {
         background = new Background(BitmapFactory.decodeResource(getResources(), R.drawable.background), screenX, screenY);
         shooter = new Shooter(screenX, screenY, getResources());
         ball = new Ball(getResources(), 100, screenX, screenY, true);
+        bullets = new ArrayList<>();
     }
 
     public GameView(Context context, int screenX, int screenY) {
@@ -47,6 +53,8 @@ public class GameView extends SurfaceView implements Runnable {
         background = new Background(BitmapFactory.decodeResource(getResources(), R.drawable.background), screenX, screenY);
         shooter = new Shooter(screenX, screenY, getResources());
         ball = new Ball(getResources(), 200, screenX, screenY, true);
+        bullets = new ArrayList<>();
+        lastShotTime = System.currentTimeMillis();
     }
 
     @Override
@@ -78,12 +86,19 @@ public class GameView extends SurfaceView implements Runnable {
     }
 
     private void update() {
+        shoot();
+        // move the ball to new position
         ball.updateLocation();
+
+        // check for collision between the ball and the cannon
         if (((ball.x + ball.size/2) > shooter.x && ball.x < shooter.x + shooter.width/2) && ball.y > 1700) {
             ball.show = false;
         }
+
+        // move shooter to setpoint
         int diff = Math.abs(shooter.x - setPoint);
         int speed = (int) Math.max(Math.min(Math.pow((diff/slowStart), 5), maxSpeed), minSpeed);
+
         if (shooter.x > screenX-shooter.width+30 && setPoint > screenX-shooter.width+30){
             setPoint = screenX-shooter.width+30;
             speed = 0;
@@ -115,10 +130,25 @@ public class GameView extends SurfaceView implements Runnable {
 
             Canvas canvas = getHolder().lockCanvas();
             canvas.drawBitmap(background.background, background.x, background.y, paint);
-            canvas.drawBitmap(shooter.shooter, (int)(shooter.x), shooter.y, paint);
+            canvas.drawBitmap(shooter.shooter, (shooter.x), shooter.y, paint);
             if (ball.show)
                 canvas.drawBitmap(ball.ball, ball.x, ball.y, paint);
+            for (Bullet bullet : bullets) {
+                bullet.updateLocation();
+                if (bullet.inScreen){
+                    canvas.drawBitmap(bullet.bullet, bullet.x, bullet.y, paint);
+                }
+            }
             getHolder().unlockCanvasAndPost(canvas);
+        }
+    }
+
+    private void shoot(){
+        long currentTime = System.currentTimeMillis();
+        long diff = currentTime - lastShotTime;
+        if (diff > 300){
+            bullets.add(new Bullet(1, shooter.x + shooter.width/2, getResources()));
+            lastShotTime = currentTime;
         }
     }
 

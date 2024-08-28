@@ -17,7 +17,7 @@ public class Shooter {
 
         shooter = Bitmap.createScaledBitmap(shooter, width, height, false);
         x = screenWidth-width+30;
-//        x = (screenWidth / 2) - width/2;
+        x = (screenWidth / 2) - width/2;
         y = 1775;
     }
 }

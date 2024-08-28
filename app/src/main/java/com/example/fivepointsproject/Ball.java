@@ -19,24 +19,8 @@ public class Ball {
         this.size = size;
         ball = BitmapFactory.decodeResource(res, R.drawable.ball);
         ball = Bitmap.createScaledBitmap(ball, size, size, false);
-        for (int x = 0; x < ball.getWidth(); x++) {
-            for (int y = 0; y < ball.getHeight(); y++) {
-                int pixel = ball.getPixel(x, y);
 
-                // Modify the color
-                int red = Color.red(pixel);
-                int green = Color.green(pixel);
-                int blue = Color.blue(pixel);
-
-                // For example, convert to grayscale
-                int newPixel = Color.rgb(100, 100, 100);
-
-                if (red > 0){
-                    // Set the new pixel color
-                    ball.setPixel(x, y, newPixel);
-                }
-            }
-        }
+        changeColor(100, 100, 100);
 
         x = startRight ? screenX - 100 : 100;
         y = 600;
@@ -62,6 +46,27 @@ public class Ball {
             if (x > screenX - size){
                 x = screenX - size;
                 positiveX = !positiveX;
+            }
+        }
+    }
+
+    private void changeColor(int r, int g, int b){
+        for (int x = 0; x < ball.getWidth(); x++) {
+            for (int y = 0; y < ball.getHeight(); y++) {
+                int pixel = ball.getPixel(x, y);
+
+                // Modify the color
+                int red = Color.red(pixel);
+                int green = Color.green(pixel);
+                int blue = Color.blue(pixel);
+
+                // Convert to color by r,g,b parameter
+                int newPixel = Color.rgb(r, g, b);
+
+                if (red > 0){
+                    // Set the new pixel color
+                    ball.setPixel(x, y, newPixel);
+                }
             }
         }
     }
