@@ -4,13 +4,18 @@ import android.app.AlertDialog;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+
+import java.util.Objects;
 
 public class GameActivity extends AppCompatActivity {
     private GameView gameView;
@@ -25,22 +30,38 @@ public class GameActivity extends AppCompatActivity {
     }
     public void showGameOverDialog() {
         runOnUiThread(() -> {
-            new AlertDialog.Builder(this)
-                    .setTitle("Game Over")
-                    .setMessage("You lost! Try again?")
-                    .setPositiveButton("Retry", (dialog, which) -> {
-                        // Restart the game
-                        gameView.resetGame();
-                    })
-                    .setNegativeButton("Quit", (dialog, which) -> {
-                        // Exit the game
-                        finish();
-                    })
-                    .setCancelable(false)
-                    .show();
+            // Inflate the custom layout
+            LayoutInflater inflater = this.getLayoutInflater();
+            View dialogView = inflater.inflate(R.layout.dialog_game_over, null);
+
+            // Create the dialog using the custom layout
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setView(dialogView);
+            builder.setCancelable(false);
+
+            AlertDialog dialog = builder.create();
+            Objects.requireNonNull(dialog.getWindow()).getAttributes().windowAnimations = R.style.DialogAnimation;
+
+            // Set up the buttons
+            Button retryButton = dialogView.findViewById(R.id.btnRetry);
+            Button quitButton = dialogView.findViewById(R.id.btnQuit);
+
+            retryButton.setOnClickListener(v -> {
+                dialog.dismiss();
+                gameView.resetGame();
+            });
+
+            quitButton.setOnClickListener(v -> {
+                dialog.dismiss();
+                finish();
+            });
+
+            // Show the dialog
+            dialog.show();
         });
     }
-    @Override
+
+        @Override
     protected void onResume() {
         super.onResume();
         gameView.resume();

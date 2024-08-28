@@ -33,7 +33,7 @@ public class GameView extends SurfaceView implements Runnable {
     private long lastShotTime;
     private final int screenX;
     private final int screenY;
-    private int setPoint;
+    private int setPoint, score = 0;
     private boolean move;
 
     private boolean isShaking = false;
@@ -118,8 +118,10 @@ public class GameView extends SurfaceView implements Runnable {
                     isShaking = true;
                     shakeStartTime = System.currentTimeMillis();
                 }
-                if (b.hp <= 0)
+                if (b.hp <= 0){
                     balls.remove(b);
+                    score++;
+                }
             }
             if (balls.isEmpty()){
                 balls.add(new Ball(getResources(), 200, screenX, screenY, false, 0));
@@ -193,7 +195,12 @@ public class GameView extends SurfaceView implements Runnable {
                 if (ball.show)
                     canvas.drawBitmap(ball.ball, ball.x, ball.y, paint);
             }
-
+            paint.setTextAlign(Paint.Align.CENTER);
+            paint.setTextSize(118);
+            String scoreStr = Integer.toString(score);
+            float textWidth = paint.measureText(scoreStr);
+            int xPos = (canvas.getWidth() / 2);
+            canvas.drawText(scoreStr, xPos, 250 , paint);
             getHolder().unlockCanvasAndPost(canvas);
         }
     }
