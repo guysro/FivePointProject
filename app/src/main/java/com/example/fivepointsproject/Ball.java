@@ -9,7 +9,7 @@ import android.graphics.ColorSpace;
 public class Ball {
 
     double velX = 10, startVelY = 0, gravity = 1, velY;
-    boolean positiveX = false, show = true;
+    boolean positiveX = false, show = true, started = false;
     int x, y, size;
     Bitmap ball;
     int screenY, screenX;
@@ -21,10 +21,11 @@ public class Ball {
         ball = BitmapFactory.decodeResource(res, R.drawable.ball);
         ball = Bitmap.createScaledBitmap(ball, size, size, false);
 
-        changeColor(100, 100, 100);
+        changeColor(0, 0, 255);
 
-        x = startRight ? screenX - 100 : 100;
+        x = startRight ? screenX + size/2: (int)(-1.5 * size);
         y = 600;
+        positiveX = !startRight;
         this.screenY = screenY;
         this.screenX = screenX;
         velY = startVelY;
@@ -41,13 +42,16 @@ public class Ball {
                 velY *= -1; // Reverse velocity and apply bounce factor
             }
             x += (int) (velX * (positiveX ? 1 : -1));
-            if (x < 0){
+            if (x < 0 && started){
                 x = 0;
                 positiveX = !positiveX;
             }
-            if (x > screenX - size){
+            if (x > screenX - size && started){
                 x = screenX - size;
                 positiveX = !positiveX;
+            }
+            if (x < screenX - size && x > 0){
+                started = true;
             }
         }
     }

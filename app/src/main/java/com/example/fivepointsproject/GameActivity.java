@@ -1,5 +1,6 @@
 package com.example.fivepointsproject;
 
+import android.app.AlertDialog;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Bundle;
@@ -13,7 +14,6 @@ import androidx.core.view.WindowInsetsCompat;
 
 public class GameActivity extends AppCompatActivity {
     private GameView gameView;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -23,7 +23,23 @@ public class GameActivity extends AppCompatActivity {
 
         setContentView(gameView);
     }
-
+    public void showGameOverDialog() {
+        runOnUiThread(() -> {
+            new AlertDialog.Builder(this)
+                    .setTitle("Game Over")
+                    .setMessage("You lost! Try again?")
+                    .setPositiveButton("Retry", (dialog, which) -> {
+                        // Restart the game
+                        gameView.resetGame();
+                    })
+                    .setNegativeButton("Quit", (dialog, which) -> {
+                        // Exit the game
+                        finish();
+                    })
+                    .setCancelable(false)
+                    .show();
+        });
+    }
     @Override
     protected void onResume() {
         super.onResume();

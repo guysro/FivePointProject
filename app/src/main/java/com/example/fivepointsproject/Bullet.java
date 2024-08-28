@@ -10,7 +10,7 @@ import java.util.Queue;
 public class Bullet {
 
     int x, y, height, width, lvl;
-    boolean inScreen = true;
+    boolean inScreen = true, hasHit = false;
     Bitmap bullet;
     final int velocity = 30;
 
@@ -42,7 +42,7 @@ public class Bullet {
 
     public void updateLocation(){
         y -= velocity;
-        if (y < -height){
+        if (y < -height || hasHit){
             inScreen = false;
         }
     }
@@ -53,8 +53,10 @@ public class Bullet {
                 !(x + width < ball.x) &&
                 !(x > ball.x + ball.size) &&
                 !(y > ball.y + ball.size/2) &&
-                !(y + height < ball.y))
+                !(y + height < ball.y) &&
+                !hasHit)
             {
+                hasHit = true;
                 return ball.id;
             }
         }
