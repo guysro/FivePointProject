@@ -14,6 +14,7 @@ public class GameView extends SurfaceView implements Runnable {
     private boolean isPlaying;
     private final Paint paint;
     private final Shooter shooter;
+    private final Ball ball;
     private final Background background;
     private final int screenX;
     private final int screenY;
@@ -22,6 +23,7 @@ public class GameView extends SurfaceView implements Runnable {
     private final double maxSpeed = 30.0;
     private final double minSpeed = 10.0;
     private final double slowStart = 20.0;
+
 
     public GameView(Context context) {
         super(context);
@@ -32,6 +34,7 @@ public class GameView extends SurfaceView implements Runnable {
         paint = new Paint();
         background = new Background(BitmapFactory.decodeResource(getResources(), R.drawable.background), screenX, screenY);
         shooter = new Shooter(screenX, screenY, getResources());
+        ball = new Ball(getResources(), 100, screenX, screenY, true);
     }
 
     public GameView(Context context, int screenX, int screenY) {
@@ -43,6 +46,7 @@ public class GameView extends SurfaceView implements Runnable {
         paint = new Paint();
         background = new Background(BitmapFactory.decodeResource(getResources(), R.drawable.background), screenX, screenY);
         shooter = new Shooter(screenX, screenY, getResources());
+        ball = new Ball(getResources(), 200, screenX, screenY, true);
     }
 
     @Override
@@ -74,6 +78,10 @@ public class GameView extends SurfaceView implements Runnable {
     }
 
     private void update() {
+        ball.updateLocation();
+        if (((ball.x + ball.size/2) > shooter.x && ball.x < shooter.x + shooter.width/2) && ball.y > 1700) {
+            ball.show = false;
+        }
         int diff = Math.abs(shooter.x - setPoint);
         int speed = (int) Math.max(Math.min(Math.pow((diff/slowStart), 5), maxSpeed), minSpeed);
         if (shooter.x > screenX-shooter.width+30 && setPoint > screenX-shooter.width+30){
@@ -90,6 +98,7 @@ public class GameView extends SurfaceView implements Runnable {
             shooter.x += speed;
         else if (shooter.x > setPoint)
             shooter.x -= speed;
+
     }
 
     private void sleep() {
@@ -107,6 +116,8 @@ public class GameView extends SurfaceView implements Runnable {
             Canvas canvas = getHolder().lockCanvas();
             canvas.drawBitmap(background.background, background.x, background.y, paint);
             canvas.drawBitmap(shooter.shooter, (int)(shooter.x), shooter.y, paint);
+            if (ball.show)
+                canvas.drawBitmap(ball.ball, ball.x, ball.y, paint);
             getHolder().unlockCanvasAndPost(canvas);
         }
     }
