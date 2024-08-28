@@ -19,8 +19,6 @@ public class GameActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         Rect bound = getWindowManager().getCurrentWindowMetrics().getBounds();
-        System.out.println(bound.width());
-        System.out.println(bound.height());
         gameView = new GameView(this, bound.width(), bound.height());
 
         setContentView(gameView);

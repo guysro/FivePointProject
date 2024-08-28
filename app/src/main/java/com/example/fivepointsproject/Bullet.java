@@ -4,17 +4,20 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
+import java.util.List;
+import java.util.Queue;
+
 public class Bullet {
 
     int x, y, height, width, lvl;
-    boolean inScreen;
+    boolean inScreen = true;
     Bitmap bullet;
     final int velocity = 30;
 
     public Bullet(int lvl, int x, Resources res) {
         this.lvl = lvl;
         this.x = x;
-        y = 1770;
+        y = 1815;
 
         switch (lvl){
             case 1:
@@ -39,6 +42,22 @@ public class Bullet {
 
     public void updateLocation(){
         y -= velocity;
-        inScreen = y > -height;
+        if (y < -height){
+            inScreen = false;
+        }
+    }
+
+    public int checkBallCollision(List<Ball> balls){
+        for (Ball ball : balls) {
+            if (
+                !(x + width < ball.x) &&
+                !(x > ball.x + ball.size) &&
+                !(y > ball.y + ball.size/2) &&
+                !(y + height < ball.y))
+            {
+                return ball.id;
+            }
+        }
+        return -1;
     }
 }
