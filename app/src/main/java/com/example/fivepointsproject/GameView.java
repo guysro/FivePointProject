@@ -1,22 +1,14 @@
 package com.example.fivepointsproject;
 
-import android.app.Activity;
+import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -24,38 +16,25 @@ import java.util.Queue;
 public class GameView extends SurfaceView implements Runnable {
 
     private Thread thread;
-    private boolean isPlaying, hasLost;
-    private final Paint paint;
+
+    private boolean isPlaying, hasLost, move, lastWasRight = true;
+    private int screenX, screenY;
+    private int setPoint, score = 0;
+    private long lastShotTime;
+
+    private Background background;
+    private Paint paint;
     private Shooter shooter;
     private List<Ball> balls;
-    private final Background background;
     private Queue<Bullet> bullets;
-    private long lastShotTime;
-    private final int screenX;
-    private final int screenY;
-    private int setPoint, score = 0;
-    private boolean move;
 
     private boolean isShaking = false;
     private long shakeStartTime;
-    private int shakeDuration = 500; // Duration of the shake effect in milliseconds
-    private int shakeMagnitude = 10; // Magnitude of the shake effect
-
 
     private final int shooterLvl = 10;
 
-
     public GameView(Context context) {
         super(context);
-
-        this.screenY = 2412;
-        this.screenX = 1080;
-
-        paint = new Paint();
-        background = new Background(BitmapFactory.decodeResource(getResources(), R.drawable.background), screenX, screenY);
-        shooter = new Shooter(screenX, getResources());
-        balls = new LinkedList<>();
-        bullets = new LinkedList<>();
     }
 
     public GameView(Context context, int screenX, int screenY) {
@@ -96,8 +75,8 @@ public class GameView extends SurfaceView implements Runnable {
             isPlaying = false;
             thread.join();
         }
-        catch (InterruptedException e){
-            e.printStackTrace();
+        catch (InterruptedException ignored){
+
         }
     }
 
@@ -109,23 +88,23 @@ public class GameView extends SurfaceView implements Runnable {
             shoot();
 
         // move ball to position by speed and gravity
-        synchronized (balls) {
-            for (Ball b : balls) {
-                b.updateLocation();
-                if (((b.x + b.size / 2) > shooter.x && b.x < shooter.x + shooter.width / 2) && b.y > 1700 && !hasLost) {
-                    hasLost = true;
-                    ((GameActivity)getContext()).showGameOverDialog();
-                    isShaking = true;
-                    shakeStartTime = System.currentTimeMillis();
-                }
-                if (b.hp <= 0){
-                    balls.remove(b);
-                    score++;
-                }
+        for (Ball b : balls) {
+            b.updateLocation();
+            if (((b.x + b.size / 2) > shooter.x && b.x < shooter.x + shooter.width / 2) && b.y > 1700 && !hasLost) {
+                move = false;
+                hasLost = true;
+                ((GameActivity)getContext()).showGameOverDialog();
+                isShaking = true;
+                shakeStartTime = System.currentTimeMillis();
             }
-            if (balls.isEmpty()){
-                balls.add(new Ball(getResources(), 200, screenX, screenY, false, 0));
+            if (b.hp <= 0){
+                balls.remove(b);
+                score++;
             }
+        }
+        if (balls.isEmpty()){
+            balls.add(new Ball(getResources(), 200, screenX, screenY, lastWasRight, 0));
+            lastWasRight = !lastWasRight;
         }
 
         // move shooter to setpoint
@@ -134,21 +113,15 @@ public class GameView extends SurfaceView implements Runnable {
         // check for collision between the ball and the cannon
 
         // check for collision between ball and bullets
-        synchronized (balls){
-            synchronized (bullets){
-                for (Bullet bullet : bullets) {
-                    int id = bullet.checkBallCollision(balls);
-                    if (id != -1){
-                        bullet.inScreen = false;
-                        try {
-                            balls.get(id).hp--;
-                        }
-                        catch (IndexOutOfBoundsException e){
-                            e.printStackTrace();
-                        }
-                        System.out.println("HIT!");
-                    }
+        for (Bullet bullet : bullets) {
+            int id = bullet.checkBallCollision(balls);
+            if (id != -1){
+                bullet.inScreen = false;
+                try {
+                    balls.get(id).hp--;
                 }
+                catch (IndexOutOfBoundsException ignored){}
+                System.out.println("HIT!");
             }
         }
     }
@@ -157,9 +130,7 @@ public class GameView extends SurfaceView implements Runnable {
         try {
             Thread.sleep(9);
         }
-        catch (InterruptedException e){
-            e.printStackTrace();
-        }
+        catch (InterruptedException ignored){}
     }
 
     private void draw() {
@@ -169,10 +140,10 @@ public class GameView extends SurfaceView implements Runnable {
             if (isShaking) {
                 long elapsedTime = System.currentTimeMillis() - shakeStartTime;
 
-                if (elapsedTime < shakeDuration) {
+                if (elapsedTime < 500) {
                     // Calculate random offsets for shaking
-                    int offsetX = (int) (Math.random() * shakeMagnitude * 2 - shakeMagnitude);
-                    int offsetY = (int) (Math.random() * shakeMagnitude * 2 - shakeMagnitude);
+                    int offsetX = (int) (Math.random() * 10 * 2 - 10);
+                    int offsetY = (int) (Math.random() * 10 * 2 - 10);
 
                     // Apply the offsets to the canvas
                     canvas.translate(offsetX, offsetY);
@@ -198,9 +169,7 @@ public class GameView extends SurfaceView implements Runnable {
             paint.setTextAlign(Paint.Align.CENTER);
             paint.setTextSize(118);
             String scoreStr = Integer.toString(score);
-            float textWidth = paint.measureText(scoreStr);
-            int xPos = (canvas.getWidth() / 2);
-            canvas.drawText(scoreStr, xPos, 250 , paint);
+            canvas.drawText(scoreStr, (float) canvas.getWidth()/2, 250 , paint);
             getHolder().unlockCanvasAndPost(canvas);
         }
     }
@@ -219,8 +188,10 @@ public class GameView extends SurfaceView implements Runnable {
         bullets = new LinkedList<>();
         shooter = new Shooter(screenX, getResources());
         hasLost = false;
+        score = 0;
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         switch (event.getAction()){
