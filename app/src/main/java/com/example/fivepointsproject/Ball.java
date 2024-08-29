@@ -14,9 +14,8 @@ public class Ball {
     Bitmap ball;
     int screenY, screenX;
     int hp = 10;
-    int id;
 
-    public Ball(Resources res, int size, int screenX, int screenY, boolean startRight, int id) {
+    public Ball(Resources res, int size, int screenX, int screenY, boolean startRight, int hp) {
         this.size = size;
         ball = BitmapFactory.decodeResource(res, R.drawable.ball);
         ball = Bitmap.createScaledBitmap(ball, size, size, false);
@@ -29,7 +28,7 @@ public class Ball {
         this.screenY = screenY;
         this.screenX = screenX;
         velY = startVelY;
-        this.id = id;
+        this.hp = hp;
     }
 
     public void updateLocation(){

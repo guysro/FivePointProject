@@ -4,8 +4,7 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
-import java.util.List;
-import java.util.Queue;
+import java.util.ArrayList;
 
 public class Bullet {
 
@@ -47,9 +46,11 @@ public class Bullet {
         }
     }
 
-    public int checkBallCollision(List<Ball> balls){
-        for (Ball ball : balls) {
+    public int checkBallCollision(Ball[] balls, int ballCount){
+        for (int i = 0; i < ballCount; i++) {
+            Ball ball = balls[i];
             if (
+                ball != null &&
                 !(x + width < ball.x) &&
                 !(x > ball.x + ball.size) &&
                 !(y > ball.y + ball.size/2) &&
@@ -57,7 +58,7 @@ public class Bullet {
                 !hasHit)
             {
                 hasHit = true;
-                return ball.id;
+                return i;
             }
         }
         return -1;
