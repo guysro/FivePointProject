@@ -9,10 +9,6 @@ public class Shooter {
     int x, y, width, height, screenX;
     Bitmap shooter;
 
-    private final double maxCannonSpeed = 30.0;
-    private final double minCannonSpeed = 10.0;
-    private final double startSlowingCannon = 20.0;
-
     public Shooter(int screenWidth, Resources res) {
         shooter = BitmapFactory.decodeResource(res, R.drawable.cannon);
 
@@ -20,7 +16,6 @@ public class Shooter {
         height = shooter.getHeight()/2;
 
         shooter = Bitmap.createScaledBitmap(shooter, width, height, false);
-        x = screenWidth-width+30;
         x = (screenWidth / 2) - width/2;
         screenX = screenWidth;
         y = 1775;
@@ -28,6 +23,11 @@ public class Shooter {
 
     public void updateLocation(int setPoint, boolean move){
         int diff = Math.abs(x - setPoint);
+
+        double minCannonSpeed = 10.0;
+        double startSlowingCannon = 20.0;
+        double maxCannonSpeed = 40.0;
+
         int speed = (int) Math.max(Math.min(Math.pow((diff/ startSlowingCannon), 5), maxCannonSpeed), minCannonSpeed);
 
         if (x > screenX-width+30 && setPoint > screenX-width+30){
@@ -38,12 +38,11 @@ public class Shooter {
             setPoint = -30;
             speed = 0;
         }
-        if (diff < 15 || !move)
-            return;
-        else if (x < setPoint)
-            x += speed;
-        else if (x > setPoint)
-            x -= speed;
+        if (!(diff < 15) && move)
+            if (x < setPoint)
+                x += speed;
+            else if (x > setPoint)
+                x -= speed;
 
     }
 }

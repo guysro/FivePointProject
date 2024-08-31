@@ -10,22 +10,19 @@ import android.os.Looper;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Locale;
 import java.util.Queue;
 import java.util.Random;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Stack;
 
 public class GameView extends SurfaceView implements Runnable {
 
     private Thread thread;
 
-    private boolean isPlaying, hasLost, move, midWave;
+    private boolean isPlaying, hasLost, move;
     private int screenX, screenY;
-    private int setPoint, score = 0;
+    private int setPoint;
     private long lastShotTime;
 
     private Background background;
@@ -38,15 +35,14 @@ public class GameView extends SurfaceView implements Runnable {
 
     private boolean isShaking = false;
     private long shakeStartTime;
-    private Random random = new Random();
-    private Handler handler = new Handler(Looper.getMainLooper());
+    private final Random random = new Random();
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private Stack<Wave> waves;
+    public int levelNum, score = 0, shooterLvl = 1;
+    private long lastWaveTime;
 
-    private final int shooterLvl = 20, minShootingDiff = 30;
 
-    public GameView(Context context) {
-        super(context);
-    }
-
+    public GameView(Context context){ super(context); }
     public GameView(Context context, int screenX, int screenY) {
         super(context);
 
@@ -57,14 +53,15 @@ public class GameView extends SurfaceView implements Runnable {
         background = new Background(BitmapFactory.decodeResource(getResources(), R.drawable.background), screenX, screenY);
         shooter = new Shooter(screenX, getResources());
         balls = new Ball[MAX_BALLS];
-        balls[0] = new Ball(getResources(), 200, screenX, screenY, true, 10);
-        ballCount++;
+//        balls[0] = new Ball(getResources(), 200, screenX, screenY, true, 10);
+//        ballCount++;
         bullets = new LinkedList<>();
         lastShotTime = System.currentTimeMillis();
     }
 
     @Override
     public void run() {
+        createLevel();
         while (isPlaying) {
 
             update();
@@ -103,9 +100,10 @@ public class GameView extends SurfaceView implements Runnable {
             if (b != null){
                 b.updateLocation();
                 if (((b.x + b.size / 2) > shooter.x && b.x < shooter.x + shooter.width / 2) && b.y > 1700 && !hasLost) {
+                    ((GameActivity) getContext()).addScoreToCoins();
                     move = false;
                     hasLost = true;
-                    ((GameActivity)getContext()).showGameOverDialog();
+                    ((GameActivity)getContext()).showLostDialog();
                     isShaking = true;
                     shakeStartTime = System.currentTimeMillis();
                 }
@@ -117,11 +115,22 @@ public class GameView extends SurfaceView implements Runnable {
                 }
             }
         }
-        // move ball to position by speed and gravity
 
-        if (!midWave){
-            generateWave(2, 10, 50);
-            midWave = true;
+        long time = System.currentTimeMillis();
+        if (time - lastWaveTime > 7500 && ballCount <= 0){
+            if (!waves.empty()){
+                System.out.println("new wave!");
+                generateWave(waves.pop());
+                lastWaveTime = time;
+            } else {
+                if (ballCount <= 0) {
+                    levelNum++;
+                    ((GameActivity) getContext()).saveLevel();
+                    ((GameActivity) getContext()).addScoreToCoins();
+                    ((GameActivity) getContext()).showWonDialog();
+                    isPlaying = false;
+                }
+            }
         }
 
         // move shooter to setpoint
@@ -138,14 +147,13 @@ public class GameView extends SurfaceView implements Runnable {
                     balls[id].hp--;
                 }
                 catch (IndexOutOfBoundsException ignored){}
-                System.out.println("HIT!");
             }
         }
     }
 
     private void sleep() {
         try {
-            Thread.sleep(9);
+            Thread.sleep(13);
         }
         catch (InterruptedException ignored){}
     }
@@ -200,35 +208,44 @@ public class GameView extends SurfaceView implements Runnable {
     private void shoot(){
         long currentTime = System.currentTimeMillis();
         long diff = currentTime - lastShotTime;
-        if (diff > Math.max(300 - (10 * shooterLvl), minShootingDiff)){
+        int minShootingDiff = 30;
+        if (diff > Math.max(1010 - (10 * shooterLvl), minShootingDiff)){
             bullets.add(new Bullet(1, shooter.x + shooter.width/2, getResources()));
             lastShotTime = currentTime;
         }
     }
 
+
     public void resetGame(){
         balls = new Ball[MAX_BALLS];
         balls[0] = new Ball(getResources(), 200, screenX, screenY, true, 10);
-        ballCount++;
+        ballCount = 1;
         bullets = new LinkedList<>();
         shooter = new Shooter(screenX, getResources());
         hasLost = false;
         score = 0;
+        createLevel();
     }
 
-    public void generateWave(int numBalls, int minHp, int maxHp) {
-        for (int i = 0; i < numBalls; i++) {
-            int delay = random.nextInt(1500) + 500;
-            handler.postDelayed(() -> {
-                createBall(minHp, maxHp);
-            }, delay);
+    public void createLevel(){
+        waves = new Stack<>();
+        int levelLength = Math.max(levelNum, 1);
+        for (int i = 0; i < levelLength; i++) {
+            waves.add(new Wave(random.nextInt(4) + 2, (int) (shooterLvl * 0.5), shooterLvl * 2));
         }
     }
 
-    private void createBall(int minHp, int maxHp) {
+    public void generateWave(Wave wave) {
+        for (int i = 0; i < wave.numBalls; i++) {
+            int delay = random.nextInt(2500) + 2500 * i;
+            handler.postDelayed(() -> createBall(wave.minHp, wave.maxHp), delay);
+        }
+    }
+
+    private void createBall(double minHp, double maxHp) {
         if (ballCount >= MAX_BALLS) return; // Limit the number of balls
 
-        int hp = random.nextInt(maxHp - minHp + 1) + minHp;
+        int hp = Math.max ((int) (random.nextDouble() * (maxHp - minHp + 1) + minHp), 1);
         float size = calculateSizeFromHp(hp);
         boolean generateOnRight = random.nextBoolean();
 
@@ -238,7 +255,7 @@ public class GameView extends SurfaceView implements Runnable {
 
 
     private float calculateSizeFromHp(int hp) {
-        return (float) Math.sqrt(hp) * 50;
+        return Math.max ((float) Math.sqrt(hp) * 50, 150);
     }
 
 

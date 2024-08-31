@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">FivePointsProject</string>
+    <string name="resume_text">Game paused \n Press anywhere to resume</string>
+
 </resources>

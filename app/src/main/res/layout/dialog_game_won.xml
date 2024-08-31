@@ -13,7 +13,7 @@
         android:id="@+id/tvGameOverTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Game Over"
+        android:text="Level cleared!"
         android:textColor="@color/white"
         android:textSize="24sp"
         android:textStyle="bold"
@@ -27,7 +27,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:text="You lost!"
+        android:text="You won!"
         android:textColor="@color/white"
         android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -35,31 +35,19 @@
         app:layout_constraintTop_toBottomOf="@+id/tvGameOverTitle"
         tools:ignore="HardcodedText" />
 
-    <Button
-        android:id="@+id/btnRetry"
-        android:layout_width="144dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="36dp"
-        android:layout_marginTop="24dp"
-        android:backgroundTint="@color/button_color"
-        android:text="Retry"
-        android:textColor="@color/white"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/btnQuit"
-        app:layout_constraintTop_toBottomOf="@+id/tvGameOverMessage"
-        tools:ignore="HardcodedText" />
 
     <Button
-        android:id="@+id/btnQuit"
+        android:id="@+id/btnContinue"
         android:layout_width="145dp"
         android:layout_height="wrap_content"
         android:backgroundTint="@color/button_color"
-        android:text="Main menu"
+        android:text="Continue"
         android:textColor="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/btnRetry"
         app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvGameOverMessage"
+        android:layout_marginTop="20dp"
         app:layout_constraintStart_toStartOf="parent"
         tools:ignore="HardcodedText" />
 
