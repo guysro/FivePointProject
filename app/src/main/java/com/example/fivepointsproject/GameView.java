@@ -38,7 +38,7 @@ public class GameView extends SurfaceView implements Runnable {
     private final Random random = new Random();
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Stack<Wave> waves;
-    public int levelNum, score = 0, shooterLvl = 1;
+    public int levelNum, score = 0, shooterLvl = 10;
     private long lastWaveTime;
 
 
@@ -53,8 +53,6 @@ public class GameView extends SurfaceView implements Runnable {
         background = new Background(BitmapFactory.decodeResource(getResources(), R.drawable.background), screenX, screenY);
         shooter = new Shooter(screenX, getResources());
         balls = new Ball[MAX_BALLS];
-//        balls[0] = new Ball(getResources(), 200, screenX, screenY, true, 10);
-//        ballCount++;
         bullets = new LinkedList<>();
         lastShotTime = System.currentTimeMillis();
     }
@@ -209,7 +207,7 @@ public class GameView extends SurfaceView implements Runnable {
         long currentTime = System.currentTimeMillis();
         long diff = currentTime - lastShotTime;
         int minShootingDiff = 30;
-        if (diff > Math.max(1010 - (10 * shooterLvl), minShootingDiff)){
+        if (diff > Math.max(500 - (13 * shooterLvl), minShootingDiff)){
             bullets.add(new Bullet(1, shooter.x + shooter.width/2, getResources()));
             lastShotTime = currentTime;
         }
@@ -218,8 +216,7 @@ public class GameView extends SurfaceView implements Runnable {
 
     public void resetGame(){
         balls = new Ball[MAX_BALLS];
-        balls[0] = new Ball(getResources(), 200, screenX, screenY, true, 10);
-        ballCount = 1;
+        ballCount = 0;
         bullets = new LinkedList<>();
         shooter = new Shooter(screenX, getResources());
         hasLost = false;
@@ -231,7 +228,7 @@ public class GameView extends SurfaceView implements Runnable {
         waves = new Stack<>();
         int levelLength = Math.max(levelNum, 1);
         for (int i = 0; i < levelLength; i++) {
-            waves.add(new Wave(random.nextInt(4) + 2, (int) (shooterLvl * 0.5), shooterLvl * 2));
+            waves.add(new Wave(random.nextInt(4) + 2, shooterLvl * 0.3, shooterLvl * 1.5));
         }
     }
 

@@ -34,7 +34,18 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tvGameOverTitle"
         tools:ignore="HardcodedText" />
-
+    <TextView
+        android:id="@+id/gameOverCoins"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="coins collected: "
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="@id/tvGameOverMessage"
+        app:layout_constraintStart_toStartOf="@id/tvGameOverMessage"
+        app:layout_constraintTop_toBottomOf="@+id/tvGameOverMessage"
+        tools:ignore="HardcodedText" />
     <Button
         android:id="@+id/btnRetry"
         android:layout_width="144dp"
@@ -47,7 +58,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/btnQuit"
-        app:layout_constraintTop_toBottomOf="@+id/tvGameOverMessage"
+        app:layout_constraintTop_toBottomOf="@+id/gameOverCoins"
         tools:ignore="HardcodedText" />
 
     <Button

@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -108,6 +109,10 @@ public class GameActivity extends AppCompatActivity {
                 finish();
             });
 
+            TextView coinsView = dialogView.findViewById(R.id.gameOverCoins);
+            String text = "You collected " + gameView.score + " coins";
+            coinsView.setText(text);
+
             // Show the dialog
             dialog.show();
         });
@@ -134,6 +139,10 @@ public class GameActivity extends AppCompatActivity {
                 startActivity(new Intent(GameActivity.this, MainActivity.class));
                 finish();
             });
+
+            TextView coinsView = dialogView.findViewById(R.id.gameOverCoins);
+            String text = "Coins collected" + gameView.score;
+            coinsView.setText(text);
 
             // Show the dialog
             dialog.show();

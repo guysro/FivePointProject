@@ -5,7 +5,7 @@ public class Wave {
     public double minHp;
     public double maxHp;
 
-    public Wave(int numBalls, int minHp, int maxHp) {
+    public Wave(int numBalls, double minHp, double maxHp) {
         this.numBalls = numBalls;
         this.minHp = minHp;
         this.maxHp = maxHp;
