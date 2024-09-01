@@ -1,4 +1,4 @@
-package com.example.fivepointsproject;
+package com.example.fivepointsproject.gameobjects;
 
 public class Wave {
     public int numBalls;

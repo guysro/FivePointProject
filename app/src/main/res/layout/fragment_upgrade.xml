@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="150dp"
+    android:background="@color/upgrades"
+    tools:context=".gameobjects.UpgradeFragment">
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Level:"
+        android:textColor="@color/black"
+        android:layout_marginStart="30dp"
+        android:textSize="36sp"
+        tools:ignore="HardcodedText,RelativeOverlap" />
+
+    <TextView
+        android:id="@+id/level"
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textAlignment="center"
+        android:textColor="@color/black"
+        android:layout_marginTop="50dp"
+        android:layout_marginStart="40dp"
+        android:textSize="48sp"
+        tools:ignore="RelativeOverlap" />
+
+    <TextView
+        android:id="@+id/upgrade"
+        android:text=""
+        android:layout_width="150dp"
+        android:layout_height="80dp"
+        android:textAlignment="center"
+        android:gravity="center"
+        android:layout_alignParentEnd="true"
+        style="@style/UpgradeButtonStyle"
+        android:background="@drawable/upgrade_button_background"
+        android:layout_marginEnd="30dp"
+        android:layout_centerVertical="true"
+        />
+</RelativeLayout>

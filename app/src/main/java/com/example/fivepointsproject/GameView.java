@@ -10,6 +10,12 @@ import android.os.Looper;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 
+import com.example.fivepointsproject.gameobjects.Background;
+import com.example.fivepointsproject.gameobjects.Ball;
+import com.example.fivepointsproject.gameobjects.Bullet;
+import com.example.fivepointsproject.gameobjects.Shooter;
+import com.example.fivepointsproject.gameobjects.Wave;
+
 import java.util.LinkedList;
 import java.util.Locale;
 import java.util.Queue;
@@ -38,7 +44,8 @@ public class GameView extends SurfaceView implements Runnable {
     private final Random random = new Random();
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Stack<Wave> waves;
-    public int levelNum, score = 0, shooterLvl = 10;
+    public int levelNum, score = 0, shooterSpeedLvl = 30;
+    public double shooterPowerLvl = 1;
     private long lastWaveTime;
 
 
@@ -105,7 +112,7 @@ public class GameView extends SurfaceView implements Runnable {
                     isShaking = true;
                     shakeStartTime = System.currentTimeMillis();
                 }
-                if (b.hp <= 0){
+                if (b.hp < 1){
                     System.arraycopy(balls, i + 1, balls, i, ballCount - i - 1);
                     ballCount--;
                     i--;
@@ -142,7 +149,7 @@ public class GameView extends SurfaceView implements Runnable {
             if (id != -1){
                 bullet.inScreen = false;
                 try {
-                    balls[id].hp--;
+                    balls[id].hp -= 0.9 + shooterPowerLvl * 0.1;
                 }
                 catch (IndexOutOfBoundsException ignored){}
             }
@@ -190,13 +197,15 @@ public class GameView extends SurfaceView implements Runnable {
             paint.setLinearText(true);
             paint.setTextSize(118);
             String scoreStr = Integer.toString(score);
+
             canvas.drawText(scoreStr, (float) canvas.getWidth()/2, 250 , paint);
 
             for (int i = 0; i < ballCount; i++) {
                 Ball ball = balls[i];
                 if (ball != null && ball.show){
                     canvas.drawBitmap(ball.ball, ball.x, ball.y, paint);
-                    canvas.drawText(Integer.toString(ball.hp), ball.x + (float) ball.size/2, ball.y + (float) ball.size/1.5f, paint);
+                    String hpStr = Integer.toString((int) ball.hp);
+                    canvas.drawText(hpStr, ball.x + (float) ball.size/2, ball.y + (float) ball.size/1.5f, paint);
                 }
             }
             getHolder().unlockCanvasAndPost(canvas);
@@ -207,8 +216,8 @@ public class GameView extends SurfaceView implements Runnable {
         long currentTime = System.currentTimeMillis();
         long diff = currentTime - lastShotTime;
         int minShootingDiff = 30;
-        if (diff > Math.max(500 - (13 * shooterLvl), minShootingDiff)){
-            bullets.add(new Bullet(1, shooter.x + shooter.width/2, getResources()));
+        if (diff > Math.max(500 - (13 * shooterSpeedLvl), minShootingDiff)){
+            bullets.add(new Bullet(2, shooter.x + shooter.width/2, getResources()));
             lastShotTime = currentTime;
         }
     }
@@ -226,9 +235,9 @@ public class GameView extends SurfaceView implements Runnable {
 
     public void createLevel(){
         waves = new Stack<>();
-        int levelLength = Math.max(levelNum, 1);
+        int levelLength = Math.max(levelNum, 3);
         for (int i = 0; i < levelLength; i++) {
-            waves.add(new Wave(random.nextInt(4) + 2, shooterLvl * 0.3, shooterLvl * 1.5));
+            waves.add(new Wave(random.nextInt(levelLength) + 2, (shooterSpeedLvl + shooterPowerLvl) * 0.3, (shooterSpeedLvl + shooterPowerLvl) * 3));
         }
     }
 
@@ -241,8 +250,8 @@ public class GameView extends SurfaceView implements Runnable {
 
     private void createBall(double minHp, double maxHp) {
         if (ballCount >= MAX_BALLS) return; // Limit the number of balls
-
-        int hp = Math.max ((int) (random.nextDouble() * (maxHp - minHp + 1) + minHp), 1);
+        if (maxHp > 999) maxHp = 999;
+        int hp = Math.max((int) (random.nextDouble() * (maxHp - minHp + 1) + minHp), 1);
         float size = calculateSizeFromHp(hp);
         boolean generateOnRight = random.nextBoolean();
 
@@ -252,7 +261,7 @@ public class GameView extends SurfaceView implements Runnable {
 
 
     private float calculateSizeFromHp(int hp) {
-        return Math.max ((float) Math.sqrt(hp) * 50, 150);
+        return (float) Math.min(Math.max(Math.sqrt(hp) * 50, 150), 300);
     }
 
 

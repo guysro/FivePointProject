@@ -15,13 +15,17 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.text.DecimalFormat;
 import java.util.Objects;
 
 public class GameActivity extends AppCompatActivity {
     private GameView gameView;
     private Rect bounds;
+    private double coinMultiplier;
+
     @SuppressLint("UseCompatLoadingForDrawables")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,8 +46,12 @@ public class GameActivity extends AppCompatActivity {
         gameView = new GameView(this, bounds.width(), bounds.height());
         SharedPreferences sharedPref = getSharedPreferences("GamePrefs", Context.MODE_PRIVATE);
         gameView.levelNum = sharedPref.getInt("Level", 1); // Default level is 1
+        gameView.shooterSpeedLvl = sharedPref.getInt("ShooterSpeedLevel", 1); // Default level is 1
+        gameView.shooterPowerLvl = sharedPref.getInt("ShooterPowerLevel", 1); // Default level is 1
 
         layout.addView(gameView, params);
+
+        coinMultiplier = 0.9 + 0.1 * sharedPref.getInt("CoinMultiplierLevel", 1); // Default level is 0
 
         RelativeLayout.LayoutParams btnParams = new RelativeLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -110,7 +118,17 @@ public class GameActivity extends AppCompatActivity {
             });
 
             TextView coinsView = dialogView.findViewById(R.id.gameOverCoins);
-            String text = "You collected " + gameView.score + " coins";
+            DecimalFormat format = new DecimalFormat("#.0");
+            String collectedStr = format.format(gameView.score * coinMultiplier);
+            String[] split = collectedStr.split("\\.");
+            if (Objects.equals(split[1], "0")) {
+                collectedStr = split[0];
+            }
+            String text;
+            if (gameView.score > 0)
+                text = "You collected " + collectedStr + " coins";
+            else
+                text = "You collected " + 0 + " coins";
             coinsView.setText(text);
 
             // Show the dialog
@@ -141,9 +159,18 @@ public class GameActivity extends AppCompatActivity {
             });
 
             TextView coinsView = dialogView.findViewById(R.id.gameOverCoins);
-            String text = "Coins collected" + gameView.score;
+            DecimalFormat format = new DecimalFormat("#.0");
+            String collectedStr = format.format(gameView.score * coinMultiplier);
+            String[] split = collectedStr.split("\\.");
+            if (Objects.equals(split[1], "0")) {
+                collectedStr = split[0];
+            }
+            String text;
+            if (gameView.score > 0)
+                text = "You collected " + collectedStr + " coins";
+            else
+                text = "You collected " + 0 + " coins";
             coinsView.setText(text);
-
             // Show the dialog
             dialog.show();
         });
@@ -158,9 +185,9 @@ public class GameActivity extends AppCompatActivity {
 
     public void addScoreToCoins(){
         SharedPreferences sharedPref = getSharedPreferences("GamePrefs", Context.MODE_PRIVATE);
-        int coins = sharedPref.getInt("Coins", 0);
+        double coins = sharedPref.getFloat("Coins", 0);
         SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putInt("Coins", coins + gameView.score);
+        editor.putFloat("Coins", (float) (coins + gameView.score * coinMultiplier));
         editor.apply();
     }
 
@@ -178,7 +205,7 @@ public class GameActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onNewIntent(Intent intent) {
+    protected void onNewIntent(@NonNull Intent intent) {
         super.onNewIntent(intent);
         saveLevel();
     }

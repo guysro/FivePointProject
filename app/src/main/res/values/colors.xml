@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="black">#FF000000</color>
+    <color name="gray">#666666</color>
     <color name="background">#CCff8b35</color>
     <color name="transparent">#11000000</color>
     <color name="white">#FFFFFFFF</color>
@@ -9,6 +10,7 @@
     <color name="button_color">#CAff8b35</color>
     <color name="start_button">#EE7a24</color>
     <color name="start_button_pressed">#ff8b35</color>
+    <color name="upgrades">#FFC194</color>
     <color name="pause_background">#44000000</color>
 
 </resources>

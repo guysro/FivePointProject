@@ -1,13 +1,15 @@
-package com.example.fivepointsproject;
+package com.example.fivepointsproject.gameobjects;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
+import com.example.fivepointsproject.R;
+
 public class Shooter {
 
-    int x, y, width, height, screenX;
-    Bitmap shooter;
+    public int x, y, width, height, screenX;
+    public Bitmap shooter;
 
     public Shooter(int screenWidth, Resources res) {
         shooter = BitmapFactory.decodeResource(res, R.drawable.cannon);

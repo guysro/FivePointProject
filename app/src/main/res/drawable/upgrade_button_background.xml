@@ -4,6 +4,7 @@
     <item android:state_pressed="true">
         <shape android:shape="rectangle">
             <solid android:color="@color/start_button"/>
+            <corners android:radius="10dp"/>
             <padding
                 android:left="16dp"
                 android:top="10dp"
@@ -15,10 +16,25 @@
         </shape>
     </item>
 
+    <item android:state_enabled="false">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/gray"/>
+            <corners android:radius="10dp"/>
+            <padding
+                android:left="16dp"
+                android:top="10dp"
+                android:right="16dp"
+                android:bottom="10dp"/>
+            <stroke
+                android:width="2dp"
+                android:color="@color/black"/>
+        </shape>
+    </item>
     <!-- Default state (not pressed) -->
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="@color/start_button"/>
+            <solid android:color="@color/start_button_pressed"/>
+            <corners android:radius="10dp"/>
             <padding
                 android:left="16dp"
                 android:top="10dp"

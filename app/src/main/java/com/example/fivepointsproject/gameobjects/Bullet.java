@@ -1,16 +1,16 @@
-package com.example.fivepointsproject;
+package com.example.fivepointsproject.gameobjects;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
-import java.util.ArrayList;
+import com.example.fivepointsproject.R;
 
 public class Bullet {
 
-    int x, y, height, width, lvl;
-    boolean inScreen = true, hasHit = false;
-    Bitmap bullet;
+    public int x, y, height, width, lvl;
+    public boolean inScreen = true, hasHit = false;
+    public Bitmap bullet;
     final int velocity = 30;
 
     public Bullet(int lvl, int x, Resources res) {
