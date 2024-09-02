@@ -25,6 +25,10 @@ public class GameActivity extends AppCompatActivity {
     private GameView gameView;
     private Rect bounds;
     private double coinMultiplier;
+    private int highscore;
+
+    SharedPreferences sharedPref;
+    SharedPreferences.Editor editor;
 
     @SuppressLint("UseCompatLoadingForDrawables")
     @Override
@@ -33,6 +37,10 @@ public class GameActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         bounds = getWindowManager().getCurrentWindowMetrics().getBounds();
 
+        sharedPref = getSharedPreferences("GamePrefs", Context.MODE_PRIVATE);
+        editor = sharedPref.edit();
+
+        highscore = sharedPref.getInt("Highscore", 0);
         RelativeLayout layout = new RelativeLayout(this);
 
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
@@ -44,7 +52,6 @@ public class GameActivity extends AppCompatActivity {
         params.height = bounds.height();
 
         gameView = new GameView(this, bounds.width(), bounds.height());
-        SharedPreferences sharedPref = getSharedPreferences("GamePrefs", Context.MODE_PRIVATE);
         gameView.levelNum = sharedPref.getInt("Level", 1); // Default level is 1
         gameView.shooterSpeedLvl = sharedPref.getInt("ShooterSpeedLevel", 1); // Default level is 1
         gameView.shooterPowerLvl = sharedPref.getInt("ShooterPowerLevel", 1); // Default level is 1
@@ -88,7 +95,16 @@ public class GameActivity extends AppCompatActivity {
 
     }
 
+    private void checkAndSetHighscore(){
+        if (gameView.score > highscore){
+            highscore = gameView.score;
+            editor.putInt("Highscore", highscore);
+            editor.apply();
+        }
+    }
+
     public void showLostDialog() {
+        checkAndSetHighscore();
         runOnUiThread(() -> {
             // Inflate the custom layout
             LayoutInflater inflater = this.getLayoutInflater();
@@ -136,6 +152,7 @@ public class GameActivity extends AppCompatActivity {
         });
     }
     public void showWonDialog() {
+        checkAndSetHighscore();
         runOnUiThread(() -> {
             // Inflate the custom layout
             LayoutInflater inflater = this.getLayoutInflater();
@@ -177,16 +194,12 @@ public class GameActivity extends AppCompatActivity {
     }
 
     public void saveLevel() {
-        SharedPreferences sharedPref = getSharedPreferences("GamePrefs", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPref.edit();
         editor.putInt("Level", gameView.levelNum);
         editor.apply();
     }
 
     public void addScoreToCoins(){
-        SharedPreferences sharedPref = getSharedPreferences("GamePrefs", Context.MODE_PRIVATE);
         double coins = sharedPref.getFloat("Coins", 0);
-        SharedPreferences.Editor editor = sharedPref.edit();
         editor.putFloat("Coins", (float) (coins + gameView.score * coinMultiplier));
         editor.apply();
     }

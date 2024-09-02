@@ -236,8 +236,9 @@ public class GameView extends SurfaceView implements Runnable {
     public void createLevel(){
         waves = new Stack<>();
         int levelLength = Math.max(levelNum, 3);
+        int maxMulti = shooterSpeedLvl + shooterPowerLvl > 20 ? 3 : 2;
         for (int i = 0; i < levelLength; i++) {
-            waves.add(new Wave(random.nextInt(levelLength) + 2, (shooterSpeedLvl + shooterPowerLvl) * 0.3, (shooterSpeedLvl + shooterPowerLvl) * 3));
+            waves.add(new Wave(random.nextInt(levelLength) + 2, (shooterSpeedLvl + shooterPowerLvl) * 0.3, (shooterSpeedLvl + shooterPowerLvl) * maxMulti));
         }
     }
 

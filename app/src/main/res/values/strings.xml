@@ -2,5 +2,9 @@
     <string name="app_name">FivePointsProject</string>
     <string name="resume_text">Game paused \n Press anywhere to resume</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="name_not_long">Name must be 5 or more characters long</string>
+    <string name="pass_not_long">Password must be 8 or more characters long</string>
+    <string name="not_a_valid_email">Not a valid email</string>
+    <string name="passwords_dont_match">Passwords don\'t match</string>
 
 </resources>

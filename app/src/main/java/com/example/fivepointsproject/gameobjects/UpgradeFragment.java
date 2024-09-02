@@ -65,8 +65,6 @@ public class UpgradeFragment extends Fragment {
 
         upgrade.setOnClickListener(v -> {
             upgradeFunc.run();
-            System.out.println(price);
-            String text = format.format(price);
             float coins = sharedPref.getFloat("Coins", 0);
             coins -= (float) price;
             SharedPreferences.Editor editor = sharedPref.edit();
@@ -78,7 +76,8 @@ public class UpgradeFragment extends Fragment {
             String newVal = value.get();
             level.setText(newVal);
             price = Math.pow(Double.parseDouble(newVal), 1.4);
-            ((TextView) v).setText(text);
+            String newPrice = format.format(price);
+            ((TextView) v).setText(newPrice);
         });
         title = view.findViewById(R.id.title);
         return view;
