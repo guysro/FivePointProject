@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.example.fivepointsproject.DataMigrator;
 import com.example.fivepointsproject.R;
 
 import java.text.DecimalFormat;
@@ -29,12 +30,14 @@ public class UpgradeFragment extends Fragment {
     SharedPreferences sharedPref;
     Supplier<String> value;
 
+    DataMigrator migrator;
     double price;
-    public UpgradeFragment(SharedPreferences sharedPref, Runnable upgradeFunc, Supplier<String> value, Runnable displayFunc){
+    public UpgradeFragment(SharedPreferences sharedPref, Runnable upgradeFunc, Supplier<String> value, Runnable displayFunc, DataMigrator migrator){
         this.sharedPref = sharedPref;
         this.upgradeFunc = upgradeFunc;
         this.value = value;
         this.displayFunc = displayFunc;
+        this.migrator = migrator;
     }
 
     @Override
@@ -78,6 +81,7 @@ public class UpgradeFragment extends Fragment {
             price = Math.pow(Double.parseDouble(newVal), 1.4);
             String newPrice = format.format(price);
             ((TextView) v).setText(newPrice);
+            migrator.migrateData();
         });
         title = view.findViewById(R.id.title);
         return view;

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "534379856304",
+    "project_id": "fivepointsgame",
+    "storage_bucket": "fivepointsgame.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:534379856304:android:697d807ada10aa2f11d675",
+        "android_client_info": {
+          "package_name": "com.example.fivepointsproject"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB5jMmZIScpTEc3LkFKKUyxOwy6dpR3zAk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

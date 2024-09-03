@@ -27,6 +27,7 @@ public class GameActivity extends AppCompatActivity {
     private double coinMultiplier;
     private int highscore;
 
+    private DataMigrator migrator;
     SharedPreferences sharedPref;
     SharedPreferences.Editor editor;
 
@@ -37,6 +38,8 @@ public class GameActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         bounds = getWindowManager().getCurrentWindowMetrics().getBounds();
 
+        migrator = new DataMigrator(this);
+        DataMigrator.loadUserData(this);
         sharedPref = getSharedPreferences("GamePrefs", Context.MODE_PRIVATE);
         editor = sharedPref.edit();
 
@@ -100,6 +103,7 @@ public class GameActivity extends AppCompatActivity {
             highscore = gameView.score;
             editor.putInt("Highscore", highscore);
             editor.apply();
+            migrator.migrateData();
         }
     }
 
@@ -196,12 +200,15 @@ public class GameActivity extends AppCompatActivity {
     public void saveLevel() {
         editor.putInt("Level", gameView.levelNum);
         editor.apply();
+        migrator.migrateData();
     }
 
     public void addScoreToCoins(){
         double coins = sharedPref.getFloat("Coins", 0);
-        editor.putFloat("Coins", (float) (coins + gameView.score * coinMultiplier));
+        float newCoins = (float) (coins + gameView.score * coinMultiplier);
+        editor.putFloat("Coins", newCoins);
         editor.apply();
+        migrator.migrateData();
     }
 
 
@@ -220,6 +227,7 @@ public class GameActivity extends AppCompatActivity {
     @Override
     protected void onNewIntent(@NonNull Intent intent) {
         super.onNewIntent(intent);
+
         saveLevel();
     }
 }

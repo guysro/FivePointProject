@@ -15,13 +15,19 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.example.fivepointsproject.gameobjects.UpgradeFragment;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.tabs.TabLayout;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 
 import java.text.DecimalFormat;
 import java.util.Objects;
@@ -39,6 +45,9 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences sharedPref;
     private  SharedPreferences.Editor editor;
 
+    private DataMigrator migrator;
+    private FirebaseAuth mAuth;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState) ;
@@ -49,6 +58,10 @@ public class MainActivity extends AppCompatActivity {
 
         sharedPref = getSharedPreferences("GamePrefs", Context.MODE_PRIVATE);
         editor = sharedPref.edit();
+
+        mAuth = FirebaseAuth.getInstance();
+        migrator = new DataMigrator(this);
+        DataMigrator.loadUserData(this);
 
         levelTextView = findViewById(R.id.levelTextView);
         displayLevel();
@@ -72,7 +85,8 @@ public class MainActivity extends AppCompatActivity {
                     shooterSpeedLvl++;
                     editor.putInt("ShooterSpeedLevel", shooterSpeedLvl);
                     editor.apply();
-                }, () -> String.valueOf(shooterSpeedLvl), this::displayCoins))
+                    DataMigrator.updateShooterSpeed(shooterSpeedLvl);
+                }, () -> String.valueOf(shooterSpeedLvl), this::displayCoins, migrator))
                 .setTransition(FragmentTransaction.TRANSIT_NONE)
                 .commit();
 
@@ -87,21 +101,24 @@ public class MainActivity extends AppCompatActivity {
                             shooterSpeedLvl++;
                             editor.putInt("ShooterSpeedLevel", shooterSpeedLvl);
                             editor.apply();
-                        }, () -> String.valueOf(shooterSpeedLvl), ()->displayCoins());
+                            DataMigrator.updateShooterSpeed(shooterSpeedLvl);
+                        }, () -> String.valueOf(shooterSpeedLvl), ()->displayCoins(), migrator);
                         break;
                     case 1:
                         fragment = new UpgradeFragment(sharedPref, ()-> {
                             shooterPowerLvl++;
                             editor.putInt("ShooterPowerLevel", shooterPowerLvl);
                             editor.apply();
-                        }, () -> String.valueOf(shooterPowerLvl), ()->displayCoins());
+                            DataMigrator.updateShooterPower(shooterPowerLvl);
+                        }, () -> String.valueOf(shooterPowerLvl), ()->displayCoins(), migrator);
                         break;
                     case 2:
                         fragment = new UpgradeFragment(sharedPref, ()-> {
                             coinMultiplierLvl++;
                             editor.putInt("CoinMultiplierLevel", coinMultiplierLvl);
                             editor.apply();
-                        }, () -> String.valueOf(coinMultiplierLvl), ()->displayCoins());
+                            DataMigrator.updateCoinMultiplier(coinMultiplierLvl);
+                        }, () -> String.valueOf(coinMultiplierLvl), ()->displayCoins(), migrator);
                         break;
                 }
                 assert fragment != null;
@@ -145,6 +162,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        loadData();
         displayLevel();
         displayCoins();
     }
@@ -175,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void logOut(){
-        // TODO: log out from account
+        mAuth.signOut();
     }
     private void displayLoginDialog(){
         runOnUiThread(() -> {
@@ -194,26 +212,24 @@ public class MainActivity extends AppCompatActivity {
             // Set up the button
             Button confirmBtn = dialogView.findViewById(R.id.btnLogin);
 
-            TextView nameError = dialogView.findViewById(R.id.nameError);
+            TextView nameError = dialogView.findViewById(R.id.emailError);
             TextView passwordError = dialogView.findViewById(R.id.passwordError);
 
-            EditText nameInput = dialogView.findViewById(R.id.name);
+            EditText nameInput = dialogView.findViewById(R.id.email);
             EditText passwordInput = dialogView.findViewById(R.id.password);
 
             confirmBtn.setOnClickListener(v -> {
-                String name = nameInput.getText().toString();
+                String email = nameInput.getText().toString();
                 String password = passwordInput.getText().toString();
                 boolean isOk = true;
-                System.out.println("name: " + name);
+                System.out.println("email: " + email);
                 System.out.println("password: " + password);
 
                 nameError.setText("");
                 passwordError.setText("");
 
-                // TODO: Check if login info exist in database (needs to exist and match)
-
-                if (name.length() < 5){
-                    nameError.setText(R.string.name_not_long);
+                if (isInvalidEmail(email)){
+                    nameError.setText(R.string.not_a_valid_email);
                     isOk = false;
                 }
                 if (password.length() < 8){
@@ -221,8 +237,19 @@ public class MainActivity extends AppCompatActivity {
                     isOk = false;
                 }
 
-                if (isOk)
-                    dialog.dismiss();
+                if (isOk){
+                    mAuth.signInWithEmailAndPassword(email, password)
+                        .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                            @Override
+                            public void onComplete(@NonNull Task<AuthResult> task) {
+                                if (task.isSuccessful()){
+                                    loadData();
+                                    dialog.dismiss();
+                                }
+                                else passwordError.setText(R.string.password_email_wrong);
+                            }
+                        });
+                }
             });
             // Show the dialog
             dialog.show();
@@ -247,39 +274,28 @@ public class MainActivity extends AppCompatActivity {
             // Set up the button
             Button confirmBtn = dialogView.findViewById(R.id.btnRegister);
 
-            TextView nameError = dialogView.findViewById(R.id.nameErrorR);
             TextView passwordError = dialogView.findViewById(R.id.passwordErrorR);
             TextView cPasswordError = dialogView.findViewById(R.id.confirmPasswordErrorR);
             TextView emailError = dialogView.findViewById(R.id.emailErrorR);
 
-            EditText nameInput = dialogView.findViewById(R.id.nameRegister);
             EditText passwordInput = dialogView.findViewById(R.id.passwordRegister);
             EditText cPasswordInput = dialogView.findViewById(R.id.passwordConfirmRegister);
             EditText emailInput = dialogView.findViewById(R.id.emailRegister);
 
             confirmBtn.setOnClickListener(v -> {
-                String name = nameInput.getText().toString();
                 String email = emailInput.getText().toString();
                 String password = passwordInput.getText().toString();
                 String passwordCon = cPasswordInput.getText().toString();
 
                 boolean isOk = true;
-                System.out.println("name: " + name);
                 System.out.println("email: " + email);
                 System.out.println("password: " + password);
                 System.out.println("password confirm: " + passwordCon);
 
-                nameError.setText("");
                 emailError.setText("");
                 passwordError.setText("");
                 cPasswordError.setText("");
 
-                // TODO: Check if name and email already exists in database (needs to not exist)
-
-                if (name.length() < 5){
-                    nameError.setText(R.string.name_not_long);
-                    isOk = false;
-                }
                 if (password.length() < 8){
                     passwordError.setText(R.string.pass_not_long);
                     isOk = false;
@@ -288,21 +304,40 @@ public class MainActivity extends AppCompatActivity {
                     cPasswordError.setText(R.string.passwords_dont_match);
                     isOk = false;
                 }
-                if (!isValidEmail(email)){
+                if (isInvalidEmail(email)){
                     emailError.setText(R.string.not_a_valid_email);
                     isOk = false;
                 }
 
 
-                if (isOk)
-                    dialog.dismiss();
+                if (isOk){
+                    mAuth.createUserWithEmailAndPassword(email, password)
+                        .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                        @Override
+                        public void onComplete(@NonNull Task<AuthResult> task) {
+                            if (task.isSuccessful()){
+                                loadData();
+                                dialog.dismiss();
+                            }
+                            else {
+                                if (task.getException() instanceof FirebaseAuthUserCollisionException)
+                                    cPasswordError.setText(R.string.user_already_exists);
+                                else cPasswordError.setText(R.string.failed_to_register_user);
+                            }
+                        }
+                    });
+                }
             });
             // Show the dialog
             dialog.show();
         });
     }
 
-    public static boolean isValidEmail(String email) {
+    private void loadData(){
+        DataMigrator.loadUserData(this);
+    }
+
+    public static boolean isInvalidEmail(String email) {
         // Regular expression for a valid email address
         String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
 
@@ -311,15 +346,19 @@ public class MainActivity extends AppCompatActivity {
 
         // If the email is null, return false
         if (email == null) {
-            return false;
+            return true;
         }
 
         // Match the email with the regex
         Matcher matcher = pattern.matcher(email);
 
         // Return true if the email matches the regex, false otherwise
-        return matcher.matches();
+        return !matcher.matches();
     }
 
-
+    @Override
+    protected void onStop() {
+        super.onStop();
+        migrator.migrateData();
+    }
 }
