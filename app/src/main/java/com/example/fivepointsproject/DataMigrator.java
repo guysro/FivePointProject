@@ -17,19 +17,41 @@ public class DataMigrator {
 
     private static final String SHARED_PREFS_NAME = "GamePrefs";
     private static final String KEY_HIGHSCORE = "Highscore";
-    private static final String KEY_UPGRADE_SPEED = "ShooterSpeedLvl";
-    private static final String KEY_UPGRADE_POWER = "ShooterPowerLvl";
-    private static final String KEY_COIN_MULTIPLIER = "CoinMultiplierLvl";
+    private static final String KEY_UPGRADE_SPEED = "ShooterSpeedLevel";
+    private static final String KEY_UPGRADE_POWER = "ShooterPowerLevel";
+    private static final String KEY_COIN_MULTIPLIER = "CoinMultiplierLevel";
     private static final String KEY_COIN_AMOUNT = "Coins";
-    private static final String KEY_LEVEL = "coinMultiplier";
+    private static final String KEY_LEVEL = "Level";
 
-    private Context context;
-
-    public DataMigrator(Context context) {
-        this.context = context;
+    public DataMigrator() {
     }
 
-    public void migrateData() {
+    public static void resetData(Context context){
+        // Get the currently logged-in user
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            // No user is logged in
+            return;
+        }
+        String uid = user.getUid();
+
+        // Default data
+        int highscore = 0;
+        int upgradeSpeed = 1;
+        int upgradePower = 1;
+        int coinMultiplier = 1;
+        int level = 1;
+        double coinAmount = 1;
+
+        // Prepare the data to be saved in Firebase
+        UserData userData = new UserData(highscore, upgradeSpeed, upgradePower, coinMultiplier, level, coinAmount);
+
+        // Save the data under the user's UID in Firebase Realtime Database
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("users").child(uid);
+        databaseReference.setValue(userData);
+    }
+
+    public static void migrateData(Context context) {
         // Get the currently logged-in user
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {

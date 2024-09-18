@@ -45,7 +45,6 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences sharedPref;
     private  SharedPreferences.Editor editor;
 
-    private DataMigrator migrator;
     private FirebaseAuth mAuth;
 
     @Override
@@ -60,7 +59,6 @@ public class MainActivity extends AppCompatActivity {
         editor = sharedPref.edit();
 
         mAuth = FirebaseAuth.getInstance();
-        migrator = new DataMigrator(this);
         DataMigrator.loadUserData(this);
 
         levelTextView = findViewById(R.id.levelTextView);
@@ -82,13 +80,14 @@ public class MainActivity extends AppCompatActivity {
         TabLayout tabLayout = findViewById(R.id.tabLayout);
 
         getSupportFragmentManager().beginTransaction().replace(R.id.upgradeFrame, new UpgradeFragment(sharedPref, ()-> {
-                    shooterSpeedLvl++;
-                    editor.putInt("ShooterSpeedLevel", shooterSpeedLvl);
-                    editor.apply();
-                    DataMigrator.updateShooterSpeed(shooterSpeedLvl);
-                }, () -> String.valueOf(shooterSpeedLvl), this::displayCoins, migrator))
-                .setTransition(FragmentTransaction.TRANSIT_NONE)
-                .commit();
+            loadData();
+            shooterSpeedLvl++;
+            editor.putInt("ShooterSpeedLevel", shooterSpeedLvl);
+            editor.apply();
+//            DataMigrator.migrateData(this);
+        }, () -> String.valueOf(shooterSpeedLvl), this::displayCoins))
+        .setTransition(FragmentTransaction.TRANSIT_NONE)
+        .commit();
 
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
@@ -98,27 +97,30 @@ public class MainActivity extends AppCompatActivity {
                 switch (tab.getPosition()){
                     case 0:
                         fragment = new UpgradeFragment(sharedPref, ()-> {
+                            loadData();
                             shooterSpeedLvl++;
                             editor.putInt("ShooterSpeedLevel", shooterSpeedLvl);
                             editor.apply();
-                            DataMigrator.updateShooterSpeed(shooterSpeedLvl);
-                        }, () -> String.valueOf(shooterSpeedLvl), ()->displayCoins(), migrator);
+//                            migrateData();
+                        }, () -> String.valueOf(shooterSpeedLvl), ()->displayCoins());
                         break;
                     case 1:
                         fragment = new UpgradeFragment(sharedPref, ()-> {
+                            loadData();
                             shooterPowerLvl++;
                             editor.putInt("ShooterPowerLevel", shooterPowerLvl);
                             editor.apply();
-                            DataMigrator.updateShooterPower(shooterPowerLvl);
-                        }, () -> String.valueOf(shooterPowerLvl), ()->displayCoins(), migrator);
+//                            migrateData();
+                        }, () -> String.valueOf(shooterPowerLvl), ()->displayCoins());
                         break;
                     case 2:
                         fragment = new UpgradeFragment(sharedPref, ()-> {
+                            loadData();
                             coinMultiplierLvl++;
                             editor.putInt("CoinMultiplierLevel", coinMultiplierLvl);
                             editor.apply();
-                            DataMigrator.updateCoinMultiplier(coinMultiplierLvl);
-                        }, () -> String.valueOf(coinMultiplierLvl), ()->displayCoins(), migrator);
+//                            migrateData();
+                        }, () -> String.valueOf(coinMultiplierLvl), ()->displayCoins());
                         break;
                 }
                 assert fragment != null;
@@ -168,18 +170,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void displayLevel() {
+        loadData();
         int level = sharedPref.getInt("Level", 1); // Default level is 1
         String text = "Level " + level;
         levelTextView.setText(text);
     }
 
     private void displayHighScore() {
+        loadData();
         int hs = sharedPref.getInt("Highscore", 0); // Default level is 1
         String text = "Highscore: " + hs;
         highscoreTextView.setText(text);
     }
 
     private void displayCoins() {
+        loadData();
         double coins = sharedPref.getFloat("Coins", 0); // Default coin number is 0
         DecimalFormat format = new DecimalFormat("#.0");
         String text = format.format(coins);
@@ -190,6 +195,7 @@ public class MainActivity extends AppCompatActivity {
         if (coins == 0)
             text = "0";
         coinsTextView.setText(text);
+        migrateData();
     }
 
     private void logOut(){
@@ -239,15 +245,15 @@ public class MainActivity extends AppCompatActivity {
 
                 if (isOk){
                     mAuth.signInWithEmailAndPassword(email, password)
-                        .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                            @Override
-                            public void onComplete(@NonNull Task<AuthResult> task) {
-                                if (task.isSuccessful()){
-                                    loadData();
-                                    dialog.dismiss();
-                                }
-                                else passwordError.setText(R.string.password_email_wrong);
+                        .addOnCompleteListener(task -> {
+                            if (task.isSuccessful()){
+                                dialog.dismiss();
+                                loadData();
+                                displayCoins();
+                                displayLevel();
+                                displayHighScore();
                             }
+                            else passwordError.setText(R.string.password_email_wrong);
                         });
                 }
             });
@@ -312,20 +318,20 @@ public class MainActivity extends AppCompatActivity {
 
                 if (isOk){
                     mAuth.createUserWithEmailAndPassword(email, password)
-                        .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
+                        .addOnCompleteListener(task -> {
                             if (task.isSuccessful()){
-                                loadData();
                                 dialog.dismiss();
+                                resetData();
+                                displayCoins();
+                                displayLevel();
+                                displayHighScore();
                             }
                             else {
                                 if (task.getException() instanceof FirebaseAuthUserCollisionException)
                                     cPasswordError.setText(R.string.user_already_exists);
                                 else cPasswordError.setText(R.string.failed_to_register_user);
                             }
-                        }
-                    });
+                        });
                 }
             });
             // Show the dialog
@@ -335,6 +341,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadData(){
         DataMigrator.loadUserData(this);
+    }
+    private void migrateData(){
+        DataMigrator.migrateData(this);
+    }
+    private void resetData(){
+        DataMigrator.resetData(this);
     }
 
     public static boolean isInvalidEmail(String email) {
@@ -359,6 +371,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        migrator.migrateData();
+        DataMigrator.migrateData(this);
     }
 }
