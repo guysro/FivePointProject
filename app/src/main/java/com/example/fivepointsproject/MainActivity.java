@@ -215,6 +215,11 @@ public class MainActivity extends AppCompatActivity {
             AlertDialog dialog = builder.create();
             Objects.requireNonNull(dialog.getWindow()).getAttributes().windowAnimations = R.style.DialogAnimation;
 
+            ImageView exit = dialogView.findViewById(R.id.exit);
+            exit.setOnClickListener(v->{
+                dialog.dismiss();
+            });
+
             // Set up the button
             Button confirmBtn = dialogView.findViewById(R.id.btnLogin);
 
@@ -276,6 +281,11 @@ public class MainActivity extends AppCompatActivity {
 
             AlertDialog dialog = builder.create();
             Objects.requireNonNull(dialog.getWindow()).getAttributes().windowAnimations = R.style.DialogAnimation;
+
+            ImageView exit = dialogView.findViewById(R.id.exit);
+            exit.setOnClickListener(v->{
+                dialog.dismiss();
+            });
 
             // Set up the button
             Button confirmBtn = dialogView.findViewById(R.id.btnRegister);
