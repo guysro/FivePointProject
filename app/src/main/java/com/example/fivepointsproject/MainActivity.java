@@ -77,64 +77,7 @@ public class MainActivity extends AppCompatActivity {
         shooterPowerLvl = sharedPref.getInt("ShooterPowerLevel", 1); // Default level is 1
         coinMultiplierLvl = sharedPref.getInt("CoinMultiplierLevel", 1); // Default level is 1
 
-        TabLayout tabLayout = findViewById(R.id.tabLayout);
-
-        getSupportFragmentManager().beginTransaction().replace(R.id.upgradeFrame, new UpgradeFragment(sharedPref, ()-> {
-            loadData();
-            shooterSpeedLvl++;
-            editor.putInt("ShooterSpeedLevel", shooterSpeedLvl);
-            editor.apply();
-//            DataMigrator.migrateData(this);
-        }, () -> String.valueOf(shooterSpeedLvl), this::displayCoins))
-        .setTransition(FragmentTransaction.TRANSIT_NONE)
-        .commit();
-
-        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-
-                Fragment fragment = null;
-                switch (tab.getPosition()){
-                    case 0:
-                        fragment = new UpgradeFragment(sharedPref, ()-> {
-                            loadData();
-                            shooterSpeedLvl++;
-                            editor.putInt("ShooterSpeedLevel", shooterSpeedLvl);
-                            editor.apply();
-//                            migrateData();
-                        }, () -> String.valueOf(shooterSpeedLvl), ()->displayCoins());
-                        break;
-                    case 1:
-                        fragment = new UpgradeFragment(sharedPref, ()-> {
-                            loadData();
-                            shooterPowerLvl++;
-                            editor.putInt("ShooterPowerLevel", shooterPowerLvl);
-                            editor.apply();
-//                            migrateData();
-                        }, () -> String.valueOf(shooterPowerLvl), ()->displayCoins());
-                        break;
-                    case 2:
-                        fragment = new UpgradeFragment(sharedPref, ()-> {
-                            loadData();
-                            coinMultiplierLvl++;
-                            editor.putInt("CoinMultiplierLevel", coinMultiplierLvl);
-                            editor.apply();
-//                            migrateData();
-                        }, () -> String.valueOf(coinMultiplierLvl), ()->displayCoins());
-                        break;
-                }
-                assert fragment != null;
-                getSupportFragmentManager().beginTransaction().replace(R.id.upgradeFrame, fragment)
-                        .setTransition(FragmentTransaction.TRANSIT_NONE)
-                        .commit();
-
-            }
-
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) {}
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {}
-        });
+        displayUpgrades();
 
         ImageView settingsBtn = findViewById(R.id.imageView);
         settingsBtn.setOnClickListener(v -> {
@@ -169,6 +112,66 @@ public class MainActivity extends AppCompatActivity {
         displayCoins();
     }
 
+    private void displayUpgrades(){
+        TabLayout tabLayout = findViewById(R.id.tabLayout);
+
+        getSupportFragmentManager().beginTransaction().replace(R.id.upgradeFrame, new UpgradeFragment(sharedPref, ()-> {
+                    loadData();
+                    shooterSpeedLvl++;
+                    editor.putInt("ShooterSpeedLevel", shooterSpeedLvl);
+                    editor.apply();
+                }, () -> String.valueOf(shooterSpeedLvl), ()-> {displayCoins(); migrateData(); }))
+                .setTransition(FragmentTransaction.TRANSIT_NONE)
+                .commit();
+
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+
+                Fragment fragment = null;
+                switch (tab.getPosition()){
+                    case 0:
+                        fragment = new UpgradeFragment(sharedPref, ()-> {
+                            loadData();
+                            shooterSpeedLvl++;
+                            editor.putInt("ShooterSpeedLevel", shooterSpeedLvl);
+                            editor.apply();
+                        }, () -> String.valueOf(shooterSpeedLvl), ()-> {displayCoins(); migrateData(); });
+                        break;
+                    case 1:
+                        fragment = new UpgradeFragment(sharedPref, ()-> {
+                            loadData();
+                            shooterPowerLvl++;
+                            editor.putInt("ShooterPowerLevel", shooterPowerLvl);
+                            editor.apply();
+//                            migrateData();
+                        }, () -> String.valueOf(shooterPowerLvl), ()-> {displayCoins(); migrateData(); });
+                        break;
+                    case 2:
+                        fragment = new UpgradeFragment(sharedPref, ()-> {
+                            loadData();
+                            coinMultiplierLvl++;
+                            editor.putInt("CoinMultiplierLevel", coinMultiplierLvl);
+                            editor.apply();
+//                            migrateData();
+                        }, () -> String.valueOf(coinMultiplierLvl), ()-> {displayCoins(); migrateData(); });
+                        break;
+                }
+                assert fragment != null;
+                getSupportFragmentManager().beginTransaction().replace(R.id.upgradeFrame, fragment)
+                        .setTransition(FragmentTransaction.TRANSIT_NONE)
+                        .commit();
+
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {}
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {}
+        });
+
+    }
+
     private void displayLevel() {
         loadData();
         int level = sharedPref.getInt("Level", 1); // Default level is 1
@@ -195,7 +198,6 @@ public class MainActivity extends AppCompatActivity {
         if (coins == 0)
             text = "0";
         coinsTextView.setText(text);
-        migrateData();
     }
 
     private void logOut(){
@@ -257,6 +259,7 @@ public class MainActivity extends AppCompatActivity {
                                 displayCoins();
                                 displayLevel();
                                 displayHighScore();
+                                displayUpgrades();
                             }
                             else passwordError.setText(R.string.password_email_wrong);
                         });
