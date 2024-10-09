@@ -1,11 +1,14 @@
 package com.example.fivepointsproject;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -59,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
         editor = sharedPref.edit();
 
         mAuth = FirebaseAuth.getInstance();
-        DataMigrator.loadUserData(this);
+        loadData();
 
         levelTextView = findViewById(R.id.levelTextView);
         displayLevel();
@@ -254,12 +257,10 @@ public class MainActivity extends AppCompatActivity {
                     mAuth.signInWithEmailAndPassword(email, password)
                         .addOnCompleteListener(task -> {
                             if (task.isSuccessful()){
-                                dialog.dismiss();
                                 loadData();
-                                displayCoins();
-                                displayLevel();
-                                displayHighScore();
-                                displayUpgrades();
+                                Handler handler = new Handler(Looper.getMainLooper());
+                                handler.postDelayed(this::reloadPage, 500);
+                                dialog.dismiss();
                             }
                             else passwordError.setText(R.string.password_email_wrong);
                         });
@@ -270,6 +271,12 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void reloadPage(){
+        Intent intent = new Intent(MainActivity.this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        finish();
+        startActivity(intent);
+    }
 
     private void displayRegisterDialog(){
         runOnUiThread(() -> {
@@ -338,6 +345,7 @@ public class MainActivity extends AppCompatActivity {
                                 displayCoins();
                                 displayLevel();
                                 displayHighScore();
+
                             }
                             else {
                                 if (task.getException() instanceof FirebaseAuthUserCollisionException)
@@ -384,6 +392,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        DataMigrator.migrateData(this);
+//        DataMigrator.migrateData(this);
     }
 }
